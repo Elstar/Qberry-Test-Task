@@ -1,0 +1,396 @@
+openapi: 3.0.0
+info:
+  title: 'Fridge Master API documentation'
+  description: 'OpenAPI for Fridge Master service. Make/check booking for store/ed products to fridge'
+  contact:
+    email: admin@example.com
+  license:
+    name: 'Apache 2.0'
+    url: //www.apache.org/licenses/LICENSE-2.0.html
+  version: 1.0.0
+servers:
+  -
+    url: '//localhost:8000/api'
+    description: 'API test local server'
+paths:
+  /bookings:
+    get:
+      tags:
+        - Booking
+      summary: Список всех сделанных броней клиентом
+      operationId: bookingList
+      responses:
+        200:
+          description: 'Everything is fine'
+          content:
+            application/json:
+              schema:
+                type: array
+                nullable: true
+                items:
+                  $ref: '#/components/schemas/Book'
+      security:
+        - bearerAuth: []
+  /book/{id}:
+    get:
+      tags:
+        - Booking
+      summary: Получение конкретной брони пользователя
+      operationId: bookingGet
+      responses:
+        200:
+          description: 'Everything is fine'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Book'
+        422:
+          description: 'Something went wrong'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - bearerAuth: []
+  /book:
+    post:
+      tags:
+        - Booking
+      summary: Бронирование
+      operationId: bookingCreate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              required:
+                - location
+                - volume
+                - temperature
+                - date_from
+                - date_to
+              properties:
+                location:
+                  type: integer
+                  example: '1'
+                volume:
+                  type: string
+                  example: '4.00'
+                temperature:
+                  type: integer
+                  example: '-4'
+                date_from:
+                  type: string
+                  example: 08/15/2022
+                date_to:
+                  type: string
+                  example: 08/25/2022
+              type: object
+      responses:
+        200:
+          description: 'Everything is fine'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookPostResponse'
+        422:
+          description: 'Something went wrong'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookPostErrorResponse'
+      security:
+        -
+          bearerAuth: []
+  /book/check:
+    post:
+      tags:
+        - Booking
+      summary: Калькулятор
+      operationId: bookingCheck
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              required:
+                - location
+                - volume
+                - temperature
+                - date_from
+                - date_to
+              properties:
+                location:
+                  type: integer
+                  example: '1'
+                volume:
+                  type: string
+                  example: '4.00'
+                temperature:
+                  type: integer
+                  example: '-4'
+                date_from:
+                  type: string
+                  example: 08/15/2022
+                date_to:
+                  type: string
+                  example: 08/25/2022
+              type: object
+      responses:
+        200:
+          description: 'Everything is fine'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookPostResponse'
+        422:
+          description: 'Something went wrong'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookPostErrorResponse'
+      security:
+        - bearerAuth: [ ]
+  /location:
+    get:
+      tags:
+        - Location
+      summary: Получение списка всех доступных локаций
+      operationId: locationList
+      responses:
+        200:
+          description: A list of locations
+          content:
+            application/json:
+              schema:
+                type: array
+                nullable: true
+                items:
+                  $ref: '#/components/schemas/Location'
+      security:
+        - bearerAuth: []
+  /location/{id}:
+    get:
+      tags:
+        - Location
+      summary: Получение дфнных об одной локации
+      operationId: locationGet
+      responses:
+        200:
+          description: A data about locations
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Location'
+      security:
+        - bearerAuth: []
+
+components:
+  schemas:
+    Location:
+      title: 'Location'
+      description: 'Information about location'
+      properties:
+        id:
+          title: 'Location id'
+          type: integer
+          example: '1'
+        name:
+          title: 'Title'
+          description: 'Name of location'
+          type: string
+          example: 'Уилмингтон (Северная Каролина)'
+        time_zone:
+          title: 'Time zone'
+          type: string
+          example: 'America/New_York'
+        blocks:
+          title: 'Blocks'
+          description: 'Count of available blocks'
+          type: integer
+    Book:
+      title: 'Book data'
+      description: 'Data about book'
+      properties:
+        id:
+          title: 'Booking id'
+          type: integer
+          example: '1'
+        location:
+          title: Location
+          description: 'Name of store location'
+          type: string
+          example: 'Уилмингтон (Северная Каролина)'
+        temperature:
+          title: Temperature
+          description: 'Temperature fore curent store request'
+          type: string
+          example: '-6'
+        booked_from:
+          title: 'Date store from'
+          description: 'Date store from mm/dd/yyyy'
+          type: string
+          example: 08/15/2022
+        booked_to:
+          title: 'Date store to'
+          description: 'Date store to mm/dd/yyyy'
+          type: string
+          example: 08/15/2022
+        cost:
+          title: 'Cost of storing'
+          description: 'Cost of storing for all period'
+          type: number
+          format: float
+          example: '200'
+        volume:
+          title: Volume
+          description: 'Volume of goods that completly stored'
+          type: number
+          format: float
+          example: '4'
+        status:
+          title: Status
+          description: 'Status of booking'
+          type: string
+          enum:
+            - reserved
+            - active
+            - finished
+          example: reserved
+        code:
+          title: Code
+          description: 'Code for store and get it back'
+          type: string
+          example: VJz1ipIiAUcc
+        count_blocks:
+          title: 'Count blocks'
+          description: 'Count blocks needed/exists to store'
+          type: integer
+          example: '2'
+      type: object
+    BookErrorResponse:
+      title: 'Book data fridge storring fail response'
+      description: 'Response data after unsuccess storring'
+      properties:
+        errors:
+          $ref: '#/components/schemas/BookErrorsResponse'
+      type: object
+    BookErrorsResponse:
+      title: 'Book data errors'
+      description: 'All errors after book'
+      properties:
+        location:
+          title: 'Location Erros'
+          description: 'All errors about location'
+          type: array
+          items:
+            type: string
+          example:
+            - 'The selected location is invalid'
+            - 'The location must be an integer.'
+            - 'The location field is required.'
+        volume:
+          title: 'Volume Erros'
+          description: 'All errors about volume'
+          type: array
+          items:
+            type: string
+          example:
+            - 'The volume must be greater than 0.'
+            - 'The volume field is required.'
+            - 'The volume must be a number.'
+        temperature:
+          title: 'Temperature Erros'
+          description: 'All errors about temperature'
+          type: array
+          items:
+            type: string
+          example:
+            - 'The temperature must be less than 0.'
+            - 'The temperature field is required.'
+            - 'The temperature must be a number.'
+        date_from:
+          title: 'Date from Erros'
+          description: 'All errors about date from'
+          type: array
+          items:
+            type: string
+          example:
+            - 'The date from field is required.'
+            - 'The date from must be a date after now.'
+            - 'The date from does not match the format m/d/Y.'
+            - 'Invalid format'
+        date_to:
+          title: 'Date to Erros'
+          description: 'All errors about date to'
+          type: array
+          items:
+            type: string
+          example:
+            - 'The date from field is required.'
+            - 'The date to must be a date after now.'
+            - 'The date to does not match the format m/d/Y.'
+            - 'Invalid format'
+            - 'Range of store can`t be more than 24 days.'
+            - 'The date to must be a date after or equal to date from.'
+      type: object
+    BookPostErrorResponse:
+      title: 'Book fridge storring fail response'
+      description: 'Response after unsuccess storring'
+      properties:
+        success:
+          title: Status
+          description: 'Request status'
+          type: boolean
+          example: 'false'
+        data:
+          $ref: '#/components/schemas/BookErrorResponse'
+        message:
+          title: Message
+          description: 'Message about response'
+          type: string
+          example: 'Validation error'
+      type: object
+    ErrorResponse:
+      title: 'Some fail response'
+      description: 'Response after unsuccessful request'
+      properties:
+        success:
+          title: Status
+          description: 'Request status'
+          type: boolean
+          example: 'false'
+        message:
+          title: Message
+          description: 'Message about fail'
+          type: string
+          example: 'Validation error'
+      type: object
+    BookPostResponse:
+      title: 'Book fridge storring response'
+      description: 'Response after success storring'
+      properties:
+        success:
+          title: Status
+          description: 'Request status'
+          type: boolean
+          example: 'true'
+        data:
+          $ref: '#/components/schemas/Book'
+        message:
+          title: Message
+          description: 'Message about response'
+          type: string
+          example: 'You successfully rented fridges'
+      type: object
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+tags:
+  -
+    name: Booking
+    description: 'Api methods for booking'
+  -
+    name: Location
+    description: 'Api methods for locations'
